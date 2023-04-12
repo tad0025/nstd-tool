@@ -1,1 +1,118 @@
-online
+from datetime import datetime
+from urllib.parse import quote
+from random import random
+from requests import get,post
+from time import sleep,time
+import webbrowser
+from os import system
+system('clear')
+
+if get('https://tad0025.github.io/nstd-tool/adsyoubizcheck.html').text!='online':
+	print('tool dừng hoạt động')
+	quit()
+
+def pghi(url,data):
+	return post(url=url,headers={'content-type':'application/x-www-form-urlencoded; charset=UTF-8'},data=data)
+
+ip=get('http://ip-api.com/json').json()['query']
+date=datetime.now().strftime("%d%m%Y")
+linkma='https://ghichu.vn/adsyoubiz'+''.join(ip.split('.'))+date
+key=get(linkma).text.split('content">')[1].split('<')[0]
+f=open('keyadsyoubiz','a+')
+f=open('keyadsyoubiz','r')
+ma=f.readline()
+f.close()
+
+if ma!=key or key=='' or ma=='':
+	chucai='!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}'
+	ma=''
+	for i in range(15):
+		ma+=chucai[int(random()*91)]
+	pghi(linkma,'t='+quote(ma,safe=''))
+	
+	linkkey=get(linkma).text.split('LinkShare">')[1].split('<')[0]
+	rutgon=get(url='https://link4m.co/api-shorten/v2?api=633bed903291cf6b25713aa0&url='+linkkey).json()['shortenedUrl']
+	webbrowser.open(rutgon)
+	print('Link lấy key:',rutgon+'\n')
+	
+	key=''
+	while key!=ma: key=input('Nhập key: ')
+	f=open('keyadsyoubiz','w')
+	f.write(ma)
+	f.close()
+
+system('clear')
+
+# Vao tool
+host=[
+	'adsyou.biz'
+	]
+f=open('adsyou.biz','a+')
+f=open('adsyou.biz','r')
+cook=[f.readline()]
+f.close()
+
+def g(url,acc):
+	head={
+		'user-agent' : 'Mozilla/5.0 (Linux; Android 12; SM-A125F Build/SP1A.210812.016) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.5414.117 Mobile Safari/537.36',
+		'cookie' : cook[acc]
+	}
+	return get(url=url,headers=head).text
+
+def p(url,data,acc):
+	head={
+		'origin' : 'https://autocoinfaucet.com',
+		'content-type' : 'application/x-www-form-urlencoded',
+		'user-agent' : 'Mozilla/5.0 (Linux; Android 12; SM-A125F Build/SP1A.210812.016) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.5414.117 Mobile Safari/537.36',
+		'cookie' : cook[acc]
+	}
+	return post(url=url,headers=head,data=data).text
+	
+def nhan(acc):
+	global dem
+	dl1=g('https://'+host[acc]+'/auto/currency/'+coin[acc],acc)
+	dl=dl1.split('''verify">
+                            <input type="hidden" name="token" value="''')[1]
+	to=dl.split('"')[0]
+	tg=int(dl.split('let timer = ')[1].split(',')[0])
+	if 'Swal.fire({' in dl1:
+		print(dl1.split('Swal.fire({')[1].split('})')[0].split("html: '")[1].split("'")[0])
+	elif dem==1:
+		print('0.00000458 MATIC has been sent to your FaucetPay account!')
+	return to,tg+int(time())
+
+def login(co):
+	while True:
+		dl=get(url='https://adsyou.biz/dashboard',headers={'cookie':co}).text
+		if 'greeting"></span> <b>' in dl:
+			system('clear')
+			print('acc:',dl.split('greeting"></span> <b>')[1].split('<')[0])
+			break
+		else:
+			co=input('Nhập cookie: ')
+	f=open('adsyou.biz','w')
+	f.write(co)
+	f.close()
+	return co
+
+#begin
+if not len(host)==len(cook):quit()
+n=len(host);to=[0]*n;tg=[0]*n;dem=0
+
+cook=[login(cook[0])]
+
+coin=[]
+for acc in range(n):
+	coin.append(g('https://'+host[acc]+'/dashboard/',acc).split('Auto Claim ')[1].split('<')[0].lower())
+
+for acc in range(n): to[acc],tg[acc]=nhan(acc)
+dem=1
+while True:
+	for acc in range(n):
+		if tg[acc]<=time():
+			p('https://'+host[acc]+'/auto/verify/'+coin[acc],'token='+to[acc],acc)
+			sleep(0.5);to[acc],tg[acc]=nhan(acc)
+	cho=min(tg)
+	while cho-time()>0:
+		print('cho',cho-int(time()),'giay',end=' \r')
+		sleep(1)
